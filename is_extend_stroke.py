@@ -194,7 +194,7 @@ def extend_strokes(s1,s2,overlap):
     t_n=s1.index(pt_n)
     if (s_1 in range(3,len(s2)-3) and s_n in range(3,len(s2)-3)) or (t_1 in range(3,len(s1)-3) and t_n in range(3,len(s1)-3)):
         return False
-    if
+
 
 
 
