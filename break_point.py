@@ -1,6 +1,5 @@
 import Pretreatment
 import math
-import sys
 
 def turning_point(Temp):#记录折点
     A=[]
