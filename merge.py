@@ -1,6 +1,7 @@
 import Pretreatment
 import numpy as np
 import tolerance_zone
+import merge
 
 
 
@@ -98,25 +99,39 @@ def extend(temp1, temp2):  # 延伸类笔画
         t = d
         d = c
         c = t
-    x = (point[0][0] + point[1][0] + point[2][0] + point[3][0]) / 4
-    y = (point[0][1] + point[1][1] + point[2][1] + point[3][1]) / 4
-    p1 = ftemp[a:b + 1]
-    p2 = btemp[c:d + 1]
-    # 找重叠区域的中点到两条笔画上最小距离的点
-    n = find_minpoint([x, y], p1)
-    m = find_minpoint([x, y], p2)
-    i = ftemp.index(n)
-    j = btemp.index(m)
-    ntemp1 = ftemp[0:i + 1]
-    ntemp2 = btemp[j:len(btemp)]
-    mx, my = (n[0] + m[0]) / 2, (n[1] + m[1]) / 2
-    new_temp1 = Chord_weighting(ntemp1, [mx, my])  # 弦长加权法求新的数据点
-    new_temp1.append([mx, my])
-    ntemp2.reverse()
-    new_temp2 = Chord_weighting(ntemp2, [mx, my])
-    new_temp2.reverse()
-    new_temp = new_temp1 + new_temp2
+    # x = (point[0][0] + point[1][0] + point[2][0] + point[3][0]) / 4
+    # y = (point[0][1] + point[1][1] + point[2][1] + point[3][1]) / 4
+    # p1 = ftemp[a:b + 1]
+    # p2 = btemp[c:d + 1]
+    # # 找重叠区域的中点到两条笔画上最小距离的点
+    # n = find_minpoint([x, y], p1)
+    # m = find_minpoint([x, y], p2)
+    # i = ftemp.index(n)
+    # j = btemp.index(m)
+    # ntemp1 = ftemp[0:i + 1]
+    # ntemp2 = btemp[j:len(btemp)]
+    # mx, my = (n[0] + m[0]) / 2, (n[1] + m[1]) / 2
+    # new_temp1 = Chord_weighting(ntemp1, [mx, my])  # 弦长加权法求新的数据点
+    # new_temp1.append([mx, my])
+    # ntemp2.reverse()
+    # new_temp2 = Chord_weighting(ntemp2, [mx, my])
+    # new_temp2.reverse()
+    # new_temp = new_temp1 + new_temp2
+    new_temp = []
+    for i in range(a + 1):
+        new_temp.append(ftemp[i])
+    Mtemp = btemp[c:d + 1]
+    Mtemp.reverse()
+    ntemp = Chord_weighting(Mtemp, point[0])
+    i = len(ntemp) - 1
+    while i >= 0:
+        new_temp.append(ntemp[i])
+        i -= 1
+    for i in range(d, len(btemp)):
+        new_temp.append(btemp[i])
+    print("new_temp", new_temp)
     return new_temp
+
 
 
 def general_equation(x1, y1, x2, y2):  # 求一般式Ax+By+C=0
@@ -250,3 +265,139 @@ def overtrace_area2(temp1, temp2):
         point2.append(temp2[len(temp2) - 1])
     t = point1 + point2
     return t
+
+
+def modify1(temp1,temp2,overlap2):
+    # s2上的重叠区域和对应的位置
+    #print(len(temp1),len(temp2))
+    ps_1 = overlap2[0]
+    ps_n = overlap2[len(overlap2) - 1]
+    s_1 = temp2.index(ps_1)
+    s_n = temp2.index(ps_n)
+    # s1上的重叠区域和对应的位置
+    pt_1 = merge.find_minpoint(ps_1, temp1)
+    pt_n = merge.find_minpoint(ps_n, temp1)
+    t_1 = temp1.index(pt_1)
+    t_n = temp1.index(pt_n)
+    if t_1>t_n:
+        overlap1=temp1[t_n:t_1+1]
+        overlap2.reverse()
+        ftemp=temp1[0:t_n]
+        btemp=temp1[t_1:len(temp1)]
+    else:
+        overlap1=temp1[t_1:t_n+1]
+        ftemp = temp1[0:t_1]
+        btemp = temp1[t_n:len(temp1)]
+    mid=[]
+    for temp in overlap1:
+        p=merge.find_minpoint(temp, overlap2)
+        m=[(temp[0]+p[0])/2,(temp[1]+p[1])/2]
+        mid.append(m)
+    new_temp=ftemp+mid+btemp
+    return new_temp
+
+def extend1(temp1,temp2,overlap2):
+    ftemp,btemp=standard(temp1,temp2,overlap2)
+    b=ftemp[len(ftemp)-1]
+    c=btemp[0]
+    a=find_minpoint(c,ftemp)
+    d=find_minpoint(b,btemp)
+    s_a=ftemp.index(a)
+    s_b = ftemp.index(b)
+    s_c = btemp.index(c)
+    s_d = btemp.index(d)
+    new_temp=[]
+    for i in range(s_a+1):
+        new_temp.append(ftemp[i])
+    Mtemp=btemp[s_c:s_d+1]
+    Mtemp.reverse()
+    ntemp=Chord_weighting(Mtemp,a)
+    i=len(ntemp)-1
+    while i>=0:
+        new_temp.append(ntemp[i])
+        i-=1
+    for i in range(s_d,len(btemp)):
+        new_temp.append(btemp[i])
+    # print("new_temp",new_temp)
+    return new_temp
+
+def standard(temp1,temp2,overlap2):
+    ps_1 = overlap2[0]
+    ps_n = overlap2[len(overlap2) - 1]
+    s_1 = temp2.index(ps_1)
+    s_n = temp2.index(ps_n)
+    # s1上的重叠区域和对应的位置
+    pt_1 = merge.find_minpoint(ps_1, temp1)
+    pt_n = merge.find_minpoint(ps_n, temp1)
+    t_1 = temp1.index(pt_1)
+    t_n = temp1.index(pt_n)
+    if t_1>t_n:
+        # print("变换1")
+        temp2.reverse()
+    elif t_1==t_n:
+        if s_1==0 and t_1==0 or s_1==len(temp2)-1 and t_1==len(temp1)-1:
+            # print("变换2")
+            temp2.reverse()
+    else:
+        pass
+    # d1=(temp2[0][0]-temp1[0][0])**2+(temp2[0][1]-temp1[0][1])**2
+    # d2= (temp2[0][0] - temp1[2][0]) ** 2 + (temp2[0][1] - temp1[2][1]) ** 2
+    # if d1>d2:
+    #     ftemp=temp1
+    #     btemp=temp2
+    # else:
+    #     print("换位置")
+    #     ftemp = temp2
+    #     btemp = temp1
+    # max_x1,max_y1,min_x1,min_y1=Pretreatment.Outer_rect(temp1)
+    # max_x2, max_y2, min_x2, min_y2 = Pretreatment.Outer_rect(temp2)
+    # n=15
+    # if (temp2[0][0]>=min_x1-n and temp2[0][0]<=max_x1+n) and (temp2[0][1]>=min_y1-n and temp2[0][1]<=max_y1+n):
+    #     ftemp=temp1
+    #     btemp=temp2
+    # elif (temp1[0][0]>=min_x2-n and temp1[0][0]<=max_x2+n) and (temp1[0][1]>=min_y2-n and temp1[0][1]<=max_y2+n):
+    #     print("换位置")
+    #     ftemp = temp2
+    #     btemp = temp1
+    # else:
+    #     ftemp = temp1
+    #     btemp = temp2
+    a = merge.find_minpoint(temp2[0], temp1)
+    s_a=temp1.index(a)
+
+    # print("a",temp1.index(a))
+    if s_a in range(0,3):
+        ftemp = temp2
+        btemp = temp1
+    else:
+        ftemp = temp1
+        btemp = temp2
+    return ftemp,btemp
+
+
+# def extend3(temp1,temp2,overlap2):
+#     ps_1 = overlap2[0]
+#     ps_n = overlap2[len(overlap2) - 1]
+#     s_1 = temp2.index(ps_1)
+#     s_n = temp2.index(ps_n)
+#     # s1上的重叠区域和对应的位置
+#     pt_1 = merge.find_minpoint(ps_1, temp1)
+#     pt_n = merge.find_minpoint(ps_n, temp1)
+#     t_1 = temp1.index(pt_1)
+#     t_n = temp1.index(pt_n)
+#     if t_1 > t_n:
+#         print("方向相反")
+#         temp2.reverse()
+#     elif t_1 == t_n:
+#         if not (s_1==0 and t_n==len(temp1)-1 or s_n==0 and t_1==len(temp1)-1):
+#             print("方向相反1")
+#             temp2.reverse()
+#     else:
+#         pass
+
+
+
+
+
+
+

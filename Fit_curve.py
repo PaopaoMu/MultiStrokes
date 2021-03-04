@@ -7,37 +7,11 @@ import break_point
 
 # hermit插值法拟合
 def Graceful_curve(temp):
-    # Bpoint = break_point.turning_point(temp)
     Bpoint = resample_point(temp)
-    # # 求斜率
-    # T1 = []
-    # T2 = []
-    # i = 0
-    # while i < len(Bpoint):
-    #     if i == 0:
-    #         t = [(Bpoint[1][0] - Bpoint[0][0]) * 0.5 / 2, (Bpoint[1][1] - Bpoint[0][1]) * 0.5 / 2]
-    #         T1.append(t)
-    #
-    #     elif i == len(Bpoint) - 1:
-    #         t = [(Bpoint[len(Bpoint) - 1][0] - Bpoint[len(Bpoint) - 2][0]) * 0.5 / 2,
-    #              (Bpoint[len(Bpoint) - 1][1] - Bpoint[len(Bpoint) - 2][1]) * 0.5 / 2]
-    #         T1.append(t)
-    #     else:
-    #         t = cardinal(Bpoint[i - 1], Bpoint[i], Bpoint[i + 1])
-    #         T1.append(t)
-    #     i += 1
-    # Temp = []
-    # for j in range(1, len(Bpoint)):
-    #     p1 = Bpoint[j - 1]
-    #     p2 = Bpoint[j]
-    #     dp1 = T1[j - 1]
-    #     dp2 = T1[j]
-    #     temp1 = temp[temp.index(p1):temp.index(p2) + 1]
-    #     new_temp = hermite_interpolation(p1, p2, dp1, dp2, temp1)
-    #     for n in new_temp:
-    #         Temp.append(n)
     Bpoint.insert(0,Bpoint[0])
     Bpoint.append(Bpoint[len(Bpoint)-1])
+    Bpoint.insert(0, Bpoint[0])
+    Bpoint.append(Bpoint[len(Bpoint) - 1])
     i=0
     Temp = []
     while i<len(Bpoint)-3:
@@ -109,7 +83,7 @@ def cardinal(p1, p2, p3):
 def resample_point(temp):
     new_temp = []
     for i in range(len(temp)):
-        if i % 10 == 0:
+        if i % 20 == 0:
             new_temp.append(temp[i])
         if i == len(temp) - 1 and i % 10 != 0:
             new_temp.append(temp[i])
@@ -127,5 +101,5 @@ def B_spline_curve(p0,p1,p2,p3):  # B样条拟合曲线
         x =B03*p0[0]+B13*p1[0]+B23*p2[0]+B33*p3[0]
         y =B03*p0[1]+B13*p1[1]+B23*p2[1]+B33*p3[1]
         P.append([x, y])
-        u = 0.1 + u
+        u = 0.05 + u
     return P

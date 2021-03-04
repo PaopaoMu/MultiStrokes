@@ -6,7 +6,7 @@ import math
 
 def is_overdraw(max_temp,min_temp):#判断是否重叠
     l=the_lengthest(max_temp)
-    max_corpoint=break_point.turning_point(max_temp)#折线化的点
+    max_corpoint=break_point.turning_point1(max_temp)#折线化的点
     temp1 = []  # 短笔画落入重叠区域的采样点
     for i in range(1,len(max_corpoint)):
         f_point=max_corpoint[i-1]

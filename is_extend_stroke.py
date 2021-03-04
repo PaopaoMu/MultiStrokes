@@ -130,7 +130,7 @@ def is_branch(temp1, temp2, mtemp):
     T22 = temp2[0:temp2.index(point22) + 1]
     b11 = tolerance_zone.line_length(T11)
     b22 = tolerance_zone.line_length(T22)
-    mtemp2=temp1[temp1.index(point11):temp1.index(point1)+1]
+    mtemp2 = temp1[temp1.index(point11):temp1.index(point1) + 1]
     if b1 == 0 and b2 == 0 or b11 == 0 and b22 == 0:
         return False
     if b1 == 0 or b2 == 0:
@@ -144,7 +144,7 @@ def is_branch(temp1, temp2, mtemp):
                     return True
                 else:
                     return False
-            if stroke_orient(mtemp2, mtemp)<=math.pi/3:
+            if stroke_orient(mtemp2, mtemp) <= math.pi / 3:
                 return True
             else:
                 return False
@@ -161,7 +161,7 @@ def is_branch(temp1, temp2, mtemp):
                     return True
                 else:
                     return False
-            if stroke_orient(mtemp2, mtemp)<=math.pi/3:
+            if stroke_orient(mtemp2, mtemp) <= math.pi / 3:
                 return True
             else:
                 return False
@@ -170,8 +170,8 @@ def is_branch(temp1, temp2, mtemp):
 
 
 def stroke_orient(s1, s2):
-    print("s1,s2",s1,s2)
-    if s1==[]or s2==[]:
+    print("s1,s2", s1, s2)
+    if s1 == [] or s2 == []:
         return False
     m1 = [s1[len(s1) - 1][0] - s1[0][0], s1[len(s1) - 1][1] - s1[0][1]]
     m2 = [s2[len(s2) - 1][0] - s2[0][0], s2[len(s2) - 1][1] - s2[0][1]]
@@ -181,18 +181,131 @@ def stroke_orient(s1, s2):
     return a
 
 
-def extend_strokes(s1,s2,overlap):
-    #s2上的重叠区域和对应的位置
-    ps_1=overlap[0]
-    ps_n=overlap[len(overlap)-1]
-    s_1=s2.index(ps_1)
-    s_n=s2.index(ps_n)
+def extend_strokes(s1, s2, overlap):
+    # s2上的重叠区域和对应的位置
+    ps_1 = overlap[0]
+    ps_n = overlap[len(overlap) - 1]
+    s_1 = s2.index(ps_1)
+    s_n = s2.index(ps_n)
     # s1上的重叠区域和对应的位置
-    pt_1=merge.find_minpoint(ps_1,s1)
-    pt_n=merge.find_minpoint(ps_n,s1)
-    t_1=s1.index(pt_1)
-    t_n=s1.index(pt_n)
-    if (s_1 in range(3,len(s2)-3) and s_n in range(3,len(s2)-3)) or (t_1 in range(3,len(s1)-3) and t_n in range(3,len(s1)-3)):
+    pt_1 = merge.find_minpoint(ps_1, s1)
+    pt_n = merge.find_minpoint(ps_n, s1)
+    t_1 = s1.index(pt_1)
+    t_n = s1.index(pt_n)
+    #重叠区域位于笔画中间则不是延伸笔画
+    if (s_1 in range(3, len(s2) - 3) and s_n in range(3, len(s2) - 3)) or (
+            t_1 in range(3, len(s1) - 3) and t_n in range(3, len(s1) - 3)):
+        return False
+    #重叠区域只有首尾点，则判断笔划的切线方向
+    breakp1 = break_point.turning_point(s1)
+    breakp2 = break_point.turning_point(s2)
+    if s_1 == s_n or t_1 == t_n:
+        if s_1==0:
+            a2=[breakp2[1][0]-breakp2[0][0],breakp2[1][1]-breakp2[0][1]]
+        elif s_n==len(s2)-1:
+            a2= [breakp2[len(breakp2)-1][0] - breakp2[len(breakp2)-2][0], breakp2[len(breakp2)-1][1] - breakp2[len(breakp2)-2][1]]
+        else:
+            return False
+        if t_1==0:
+            a1=[breakp1[1][0]-breakp1[0][0],breakp1[1][1]-breakp1[0][1]]
+        elif t_n==len(s1)-1:
+            a1 = [breakp1[len(breakp1)-1][0] - breakp1[len(breakp1)-2][0], breakp1[len(breakp1)-1][1] - breakp1[len(breakp1)-2][1]]
+        else:
+            return False
+        theta = (a1[0] * a2[0] + a1[1] * a2[1]) / (((a1[0] * a1[0] + a1[1] * a1[1]) ** 0.5) * ((a2[0] * a2[0] + a2[1] * a2[1]) ** 0.5))
+        a = math.acos(theta)
+        # print("角度",a)
+        if a <= math.pi / 9:
+            # print("首尾笔画小于60度")
+            return True
+        else:
+            # print("首尾笔画大于60度")
+            return False
+    s_m=int((s_1+s_n)/2)
+    t_m=int((t_1+t_n)/2)
+    # if 2*s_m>len(s2):#后半段
+    #     if s_1<s_n:#s_1在前，取s_1的前面的折点
+    #         bp1,bp2=the_area(ps_1,breakp2)
+    #     else:
+    #         bp1, bp2 = the_area(ps_n, breakp2)
+    #     change1 = bp1
+    # else:
+    #     if s_1<s_n:
+    #         bp1,bp2=the_area(ps_n,breakp2)
+    #     else:
+    #         bp1, bp2 = the_area(ps_1, breakp2)
+    #     change1 = bp2
+    # if 2*t_m>len(s1):#后半段
+    #     if t_1<t_n:#t_1在前，取t_1的前面的折点
+    #         bp1,bp2=the_area(pt_1,breakp1)
+    #     else:
+    #         bp1, bp2 = the_area(pt_n, breakp1)
+    #     change2 = bp1
+    # else:
+    #     if s_1<s_n:#s_1在前，取s_1的前面的折点
+    #         bp1,bp2=the_area(pt_n,breakp1)
+    #     else:
+    #         bp1, bp2 = the_area(pt_1, breakp1)
+    #     change2 = bp2
+
+    if 2*s_m>len(s2):#后半段
+        if s_1<s_n:#s_1在前，取s_1的前面的折点
+            if s_1-5<=0:
+                change1=s2[0]
+            else:
+                change1=s2[s_1-5]
+        else:
+            if s_n-5<=0:
+                change1=s2[0]
+            else:
+                change1=s2[s_n-5]
+    else:
+        if s_1<s_n:
+            if s_n+5>=len(s2)-1:
+                change1 = s2[len(s2)-1]
+            else:
+                change1 = s2[s_n + 5]
+        else:
+            if s_1 + 5 >= len(s2) - 1:
+                change1 = s2[len(s2) - 1]
+            else:
+                change1 = s2[s_n + 5]
+    if 2 * t_m > len(s1):  # 后半段
+        if t_1 < t_n:  # s_1在前，取s_1的前面的折点
+            if t_1 - 5 <= 0:
+                change2 = s1[0]
+            else:
+                change2 = s1[t_1 - 5]
+        else:
+            if t_n - 5 <= 0:
+                change2 = s1[0]
+            else:
+                change2 = s1[t_n - 5]
+    else:
+        if t_1 < t_n:
+            if t_n + 5 >= len(s1) - 1:
+                change2 = s1[len(s1) - 1]
+            else:
+                change2 = s1[t_n + 5]
+        else:
+            if t_1 + 5 >= len(s1) - 1:
+                change2 = s1[len(s1) - 1]
+            else:
+                change2 = s1[t_n + 5]
+    a = [(ps_1[0] + pt_1[0]) / 2, (ps_1[1] + pt_1[1]) / 2]
+    b = [(ps_n[0] + pt_n[0]) / 2, (ps_n[1] + pt_n[1]) / 2]
+    R, T = tolerance_zone.coordinate_transformation(a, b)
+    a1 = np.array([a[0], a[1], 1])
+    b1 = np.array([b[0], b[1], 1])
+    Ya1 = R @ T @ a1
+    Yb2 = R @ T @ b1
+    change1=np.array([change1[0],change1[1],1])
+    change2= np.array([change2[0], change2[1], 1])
+    Y1=R@T@change1
+    Y2=R@T@change2
+    if Y1[0]*Y2[0]<0:
+        return True
+    else:
         return False
 
 
@@ -201,17 +314,44 @@ def extend_strokes(s1,s2,overlap):
 
 
 
-
-
-
-def orient(p1,p2):
-    x1=p2[0]-p1[0]
-    y1=p2[1]-p1[1]
-    if x1>0 or y1>0:
-        num=1
+def orient(p1, p2):
+    x1 = p2[0] - p1[0]
+    y1 = p2[1] - p1[1]
+    if x1 > 0 or y1 > 0:
+        num = 1
     else:
-        num=0
+        num = 0
     return num
+
+
+def the_area(p, temp):
+    if len(temp)==2:
+        p1=temp[0]
+        p2=temp[len(temp)-1]
+    else:
+        i = 1
+        while i < len(temp):
+            p1 = temp[i - 1]
+            p2 = temp[i]
+            if p1[0] > p2[0]:
+                max_x = p1[0]
+                min_x = p2[0]
+            else:
+                max_x = p2[0]
+                min_x = p1[0]
+            if p1[1] > p2[1]:
+                max_y = p1[1]
+                min_y = p2[1]
+            else:
+                max_y = p2[1]
+                min_y = p1[1]
+            if p[0] > min_x and p[0] < max_x or p[1] > min_y and p[1] < max_y:
+                break
+            else:
+                i += 1
+    return p1, p2
+
+
 
 
 

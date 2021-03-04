@@ -147,3 +147,18 @@ def calculate_curve2(x1,x2,x3,y1,y2,y3):#计算曲率
     re_a=abs(a2-a1)
     k=re_a/(d1+d2)
     return k
+
+
+def Outer_rect(temp):#最小外包矩形
+    list_x=[]
+    list_y=[]
+    for i in range(len(temp)):
+        a=temp[i][0]
+        b=temp[i][1]
+        list_x.append(a)
+        list_y.append(b)
+    max_x=max(list_x)
+    max_y=max(list_y)
+    min_x=min(list_x)
+    min_y=min(list_y)
+    return max_x,max_y,min_x,min_y

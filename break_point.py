@@ -10,7 +10,7 @@ def turning_point(Temp):#记录折点
         p1=Temp.index(A[0])
         p2=Temp.index(A[1])
         temp=Temp[p1:p2+1]
-        p_max=curve_change_line(A[0],A[1],temp)
+        p_max=curve_change_line(A[0],A[1],temp,0.05)
         if p_max:
             A.insert(1, p_max)
         else:
@@ -23,7 +23,32 @@ def turning_point(Temp):#记录折点
     # print("折点：",B)
     return B
 
-def curve_change_line(point1,point2,line):#折线化
+def turning_point1(Temp):
+    A=[]
+    A.append(Temp[0])
+    A.append(Temp[len(Temp)-1])
+    j=0
+    while j<len(A)-1:
+        p1=A[j]
+        p2=A[j+1]
+        site1=Temp.index(p1)
+        site2=Temp.index(p2)
+        temp = Temp[site1:site2 + 1]
+        if len(temp)<6:
+            j+=1
+        else:
+            p_max = curve_change_line(p1,p2,temp,0.075)
+            if p_max:
+                A.insert(j+1,p_max)
+                j = 0
+                # break
+            else:
+                j+=1
+    # print("折点：",A)
+    return A
+
+
+def curve_change_line(point1,point2,line,t):#折线化
     d=0
     x_max=0
     y_max=0
@@ -35,7 +60,7 @@ def curve_change_line(point1,point2,line):#折线化
             d=dis
             x_max=each[0]
             y_max=each[1]
-    if d>0.05*line_d:
+    if d>t*line_d:
         point_max=[x_max,y_max]
     else:
         point_max=[]
